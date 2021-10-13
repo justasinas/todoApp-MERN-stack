@@ -1,0 +1,12 @@
+GET http://localhost:3001/todos
+
+###
+POST http://localhost:3001/todo/new
+Content-Type: application/json
+
+{
+    "text": "Learn Node"
+}
+
+###
+DELETE http://localhost:3001/todo/delete/616540b7c3778437651876e5

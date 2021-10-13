@@ -1,6 +1,5 @@
 import './App.css';
-import TodoListItem from './Todo';
-import TextField from "@material-ui/core/TextField"
+import { Button, ListItem, ListItemText, TextField } from '@material-ui/core'
 import {useState, useEffect} from "react"
 const API = 'http://localhost:3001';
 
@@ -16,24 +15,40 @@ function App() {
       fetch(API + "/todos")
       .then(res => res.json())
       .then(data => setTodos(data))
-      .catch(err => console.error("Error:", err))
+      .catch(err => console.error("Error:", err));
   }
-  const addTodo = async () => {
-    const data = await fetch(API + "todo/new", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        text: todoInput
-      })
-    }).then(res => res.json());
-    setTodos([...setTodos, data]);
-  }
+  const toggleInProgress = async id => {
+		const data = await fetch(API + '/todo/progress/' + id).then(res => res.json());
+
+		setTodos(todos => todos.map(todo => {
+			if (todo._id === data._id) {
+				todo.progress = data.progress;
+			}
+			return todo;
+		}));
+	}
+	const addTodo = async () => {
+		const data = await fetch(API + "/todo/new", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json" 
+			},
+			body: JSON.stringify({
+				text: todoInput
+			})
+		}).then(res => res.json());
+
+		setTodos([...todos, data]);
+		setTodoInput("");
+	}
+   const deleteTodo = async id => {
+    const data = await fetch(API + '/todo/delete/' + id, { method: "DELETE" }).then(res => res.json());
+    setTodos(todos => todos.filter(todo => todo._id !== data.result._id));
+   }
   return (
     <div className="App">
       <form>
-        <h3>What todo?</h3>
+        <h3 key="heading text">What todo?</h3>
         <TextField 
           className="inputTask" 
           id="standard-basic" 
@@ -45,12 +60,14 @@ function App() {
           Add
         </button>
       </form>
-      {todos.map((todo)=> (
-        <TodoListItem 
-          todo={todo.text} 
-          inprogress={todo.progress} 
-          id={todo.id} />
-        //<p>{todo.todo}</p>
+      {todos.map(todo => (
+          <div className="listItems">
+            <ListItem>
+              <ListItemText key={todo._id} primary={todo.text} secondary={todo.progress ? "Completed" : "In progress"}></ListItemText>
+            </ListItem>
+             <Button onClick={() => toggleInProgress(todo._id)}>{todo.progress ? "undo" : "Done"}</Button>
+             <Button onClick={() => deleteTodo(todo._id)}>X</Button>
+      </div>
       ))}
     </div>
   );
